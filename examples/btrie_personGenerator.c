@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
             break;
         }
     }
-    printf("finished inserting %d people, %d nodes\n", num_entries, num_nodes);
+    printf("finished inserting %d people, %d nodes\n", (int)pt.size, num_nodes);
     for (i=0; i<(num_entries/2); ++i) {
         btrie_lookup(&pt, (char *)&ppl[i], sizeof(ppl[i]));
     }
