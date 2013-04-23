@@ -18,6 +18,7 @@ void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, voi
 void *btrie_lookupR(Node *node, const char *keys, int i, int end, int delta);
 Node *btrie_addNode(Node *node, unsigned char c, void *ptr);
 Node *btrie_nextNode(Node *node, unsigned char c);
+void btrie_printR(Node *node, void (*print) (void *));
 
 Node *btrie_makeNode(void *data) {
     Node *node = (Node *)calloc(1, sizeof(Node));
@@ -34,23 +35,13 @@ void btrie_init(Trie *t) {
     }
 }
 
-/*
-
-say we have a person object Bob
-Bob's info is located at address 0xAB12
-then if p points to Bob, the value of p is 0xAB12
-
-
-*/
-
 void *btrie_insert(Trie *t, const char *keys, int size, void *data) {
     int start = (t->dir == BTRIE_BACKTOFRONT) ? size - 1 : 0,
         end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
         delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
-    // unsigned k = (unsigned)keys[start];
-    // printf("k = %d, k %% 256 = %d\n", k, k % 256);
-    // printf("received keys of size %d. First key is %x\n", size, k % 256);
-    void *res = btrie_insertR(t->root, keys, start, end, delta, data);
+    void *res;
+    if (!size) return NULL;
+    res = btrie_insertR(t->root, keys, start, end, delta, data);
     if (res)
         t->size++;
     return res;
@@ -59,7 +50,6 @@ void *btrie_insert(Trie *t, const char *keys, int size, void *data) {
 void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, void *data) {
     Node *next;
     unsigned char c = keys[i];
-    // printf("hashing key %x\n", ((unsigned)c) % 256);
     if (i == end)
         return btrie_addNode(node, c, data);
     else {
@@ -74,6 +64,7 @@ void *btrie_lookup(Trie *t, const char *keys, int size) {
     int start = (t->dir == BTRIE_BACKTOFRONT) ? size - 1 : 0,
         end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
         delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
+    if (!size) return NULL;
     return btrie_lookupR(t->root, keys, start, end, delta);
 }
 
@@ -94,6 +85,24 @@ Node *btrie_addNode(Node *node, unsigned char c, void *ptr) {
     if (newNode) {
         node->links[(unsigned)c] = newNode;
         num_nodes++;
+    } else {
+        fprintf(stderr, "Error in memory allocation, exiting.\n");
+        exit(1);
     }
     return newNode;
+}
+
+void btrie_printR(Node *node, void (*print) (void *)) {
+    int i;
+    if (node->data) 
+        print(node->data);
+    for (i=0; i<MAX_DICT; ++i) {
+        if (node->links[i])
+            btrie_printR(node->links[i], print);
+    }
+}
+
+void btrie_print(Trie *t) {
+    if (!t->prnt) return;
+    btrie_printR(t->root, t->prnt);
 }
