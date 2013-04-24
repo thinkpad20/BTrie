@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "../btrie_mod.h"
+#include "../btrie.h"
 
 struct BTrie t;
 

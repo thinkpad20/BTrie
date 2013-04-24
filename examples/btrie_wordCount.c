@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "../btrie.h"
 
 #define MAX_WORD 50
@@ -12,12 +13,24 @@ struct word {
 	int num;
 };
 
+char *tolowerstr(char *str) {
+	int i, len = strlen(str);
+	for (i = 0; i < len; ++i) {
+		str[i] = tolower(str[i]);
+	}
+	return str;
+}
+
 void update_count(char *buf, int len) {
-	struct word *word = (struct word *)btrie_lookup(&t, buf, len);
 	if (!len) return;
+	printf("looking up '%s'... ", buf);
+	if (!strcmp(buf, "s")) printf("*******************************************s!\n");
+	struct word *word = (struct word *)btrie_lookup(&t, buf, len);
 	if (word) {
+		printf("found it, count is now %d.\n", word->num + 1);
 		word->num++;
 	} else {
+		printf("not found, creating\n");
 		word = (struct word *)calloc(1, sizeof(struct word));
 		strncpy(word->text, buf, MAX_WORD);
 		word->num = 1;
@@ -36,6 +49,7 @@ int main(int argc, char **argv) {
 	
 	int i = 0;
 	btrie_init(&t);
+	t.dir = 1;
 	FILE *fp = fopen(filename, "r");
 	if (!fp) { printf("Error opening file.\n"); return 0; }
 	while ((c = fgetc(fp)) != EOF) {
@@ -43,7 +57,7 @@ int main(int argc, char **argv) {
 			buf[i++] = c;
 		else {
 			buf[i] = '\0';
-			update_count(buf, i);
+			update_count(tolowerstr(buf), i);
 			i = 0;
 		}
 	}
