@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../btrie.h"
+#include <time.h>
+#include "../btrie_mod.h"
 
-typedef struct BTrie BTrie;
+struct BTrie t;
 
 typedef struct person {
     char name[20];
@@ -35,31 +36,68 @@ Person *make_person(int bang) {
 
 extern int num_nodes;
 
-int main(int argc, char **argv) {
-    int i, j=0;
-    int num_entries = (argc > 1) ? atoi(argv[1]) : 200;
-    BTrie pt;
-    btrie_init(&pt);
-    pt.dir = (argc > 2) ? atoi(argv[2]) : BTRIE_BACKTOFRONT;
-    Person *ppl[num_entries/2];
-    for (i=0; i<num_entries; ++i) {
+void create_people(Person **arr, int num) {
+    int i;
+    clock_t cl;
+    cl = clock();
+    printf ("Creating...\n");
+    for (i=0; i<num; ++i) {
         Person *p = make_person(i & 1);
-        if (i & 1) ppl[j++] = p;
+        arr[i] = p;
     }
-    printf("finished creating person objects\n");
+    cl = clock() - cl;
+    printf("finished creating person objects. ");
+    printf ("It took me %d clicks (%0.8LF seconds, %0.8LF each).\n",
+                (int)cl,
+                ((long double)cl)/CLOCKS_PER_SEC,
+                ((long double)cl)/CLOCKS_PER_SEC/num);
+}
 
-    for (i=0; i<num_entries/2; ++i) {
+void insert_people(Person **ppl, int num) {
+    int i;
+    clock_t cl = clock();
+    printf("inserting...\n");
+    for (i=0; i<num; ++i) {
         Person *p = ppl[i];
-        printf("inserting person %p\n", p);
-        if (!btrie_insert(&pt, (char *)&p, sizeof(p), p)) {
+        // printf("inserting person %p\n", p);
+        if (!btrie_insert(&t, (char *)&p, sizeof(p), p)) {
             printf("error on insertion\n");
             break;
         }
     }
-    printf("finished inserting %d people, %d nodes\n", (int)pt.size, num_nodes);
-    for (i=0; i<(num_entries/2); ++i) {
-        btrie_lookup(&pt, (char *)&ppl[i], sizeof(ppl[i]));
+    cl = clock()-cl;
+    printf("finished inserting %d people, %d nodes. ", (int)t.size, num_nodes);
+    printf ("It took me %d clicks (%0.8LF seconds, %0.8LF each).\n",
+                (int)cl,
+                ((long double)cl)/CLOCKS_PER_SEC,
+                ((long double)cl)/CLOCKS_PER_SEC/num);
+}
+
+void lookup_people(Person **ppl, int num) {
+    int i;
+    clock_t cl = clock();
+    printf("looking up...\n");
+    for (i=0; i<(num); ++i) {
+        btrie_lookup(&t, (char *)&ppl[i], sizeof(ppl[i]));
     }
-    printf("Finished lookups\n");
+    cl = clock() - cl;
+    printf("Finished lookups. ");
+    printf ("It took me %d clicks (%0.8LF seconds, %0.8LF each).\n",
+                (int)cl,
+                ((long double)cl)/CLOCKS_PER_SEC,
+                ((long double)cl)/CLOCKS_PER_SEC/num);
+}
+
+int main(int argc, char **argv) {
+    int num_entries = (argc > 1) ? atoi(argv[1]) : 200;
+    btrie_init(&t);
+    t.dir = (argc > 2) ? atoi(argv[2]) : BTRIE_BACKTOFRONT;
+    Person **ppl = (Person **)malloc(num_entries * sizeof(Person*)); 
+
+    create_people(ppl, num_entries);
+    insert_people(ppl, num_entries);
+    lookup_people(ppl, num_entries);
+   
+    btrie_printProfile(&t);
     return 0;
 }
