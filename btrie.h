@@ -29,7 +29,7 @@ struct BTrie {
 };
 
 void btrie_init(struct BTrie *t);
-void *btrie_insert(struct BTrie *t, const char *keys, int size, void *data);
+void *btrie_insert(struct BTrie *t, const char *keys, int size, const void *data);
 void *btrie_lookup(struct BTrie *t, const char *keys, int size);
 void btrie_print(struct BTrie *t);
 void btrie_printProfile(struct BTrie *t);

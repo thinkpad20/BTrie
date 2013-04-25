@@ -44,21 +44,22 @@ void word_print(void *w) {
 }
 
 int main(int argc, char **argv) {
-	const char *filename = (argc == 2) ? argv[1] : "default.txt";
+	const char *filename = (argc >= 3) ? argv[2] : "default.txt";
 	char c, buf[MAX_WORD];
 	
-	int i = 0;
+	int i = 0, j = 0, numWords = (argc >= 2) ? atoi(argv[1]) : -1;
 	btrie_init(&t);
 	t.dir = 1;
 	FILE *fp = fopen(filename, "r");
 	if (!fp) { printf("Error opening file.\n"); return 0; }
-	while ((c = fgetc(fp)) != EOF) {
+	while ((c = fgetc(fp)) != EOF  && j != numWords) {
 		if ((c >= 'a' && c <= 'z' ) || (c >= 'A' && c <= 'Z'))
 			buf[i++] = c;
 		else {
 			buf[i] = '\0';
 			update_count(tolowerstr(buf), i);
 			i = 0;
+			j++;
 		}
 	}
 	fclose(fp);

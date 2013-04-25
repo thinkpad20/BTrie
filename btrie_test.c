@@ -3,6 +3,36 @@
 #include <string.h>
 #include "btrie.h"
 
+const char *test[] = {
+    "say",
+    "so",
+    "hell",
+    "hello",
+    "help",
+    "zizzer"
+};
+
+const int numstrs = sizeof(test)/sizeof(char *);
+
+struct BTrie t;
+
+int main() {
+    int i;
+    btrie_init(&t);
+    for (i=0; i<numstrs; ++i) {
+        printf("Inserting '%s'\n", test[i]);
+        btrie_insert(&t, test[i], strlen(test[i]), test[i]);
+    }
+
+    for (i=0; i<numstrs; ++i) {
+        printf("Looking up '%s'\n", test[i]);
+        printf("%s\n", (char *)btrie_lookup(&t, test[i], strlen(test[i])));
+    }
+    printf("looking up plop: %s\n", (char *)btrie_lookup(&t, "plop", 4));
+    return 0;
+}
+
+/*
 typedef struct BTrie BTrie;
 
 typedef struct person {
@@ -57,7 +87,7 @@ int main(int argc, char **argv) {
     }
     printf("Finished lookups\n");
     return 0;
-}
+}*/
 
 
 

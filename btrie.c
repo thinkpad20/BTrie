@@ -16,16 +16,16 @@ typedef struct BTrie Trie;
 int num_nodes = 0;
 int isS = 0;
 
-void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, void *data);
+void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, const void *data);
 void *btrie_lookupR(Node *node, const char *keys, int i, int end, int delta);
-Node *btrie_addNode(Node *node, char c, void *ptr);
+Node *btrie_addNode(Node *node, char c, const void *ptr);
 Node *btrie_nextNode(Node *node, char c);
 void btrie_printR(Node *node, void (*print) (void *));
 
-Node *btrie_makeNode(char c, void *data) {
+Node *btrie_makeNode(char c, const void *data) {
     Node *node = (Node *)calloc(1, sizeof(Node));
     if (node) {
-        node->data = data;
+        node->data = (void *)data;
         node->c = c;
     }
     return node;
@@ -38,7 +38,7 @@ void btrie_init(Trie *t) {
     }
 }
 
-void *btrie_insert(Trie *t, const char *keys, int size, void *data) {
+void *btrie_insert(Trie *t, const char *keys, int size, const void *data) {
     int start = (t->dir == BTRIE_BACKTOFRONT) ? size - 1 : 0,
         end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
         delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
@@ -52,19 +52,15 @@ void *btrie_insert(Trie *t, const char *keys, int size, void *data) {
     return res;
 }
 
-void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, void *data) {
+void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, const void *data) {
     Node *next;
     char c = keys[i];
-    if (isS) printf("hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!\n");
     if (i == end)
         return btrie_addNode(node, c, data);
     else {
-        // printf("hey, key = %x, node = %p\n", (int)c % 256, node); fflush(stdout);
         next = btrie_nextNode(node, c);
-        // printf("wazzup\n"); fflush(stdout);
         if (!next)
             next = btrie_addNode(node, c, NULL);
-        // printf("yoyoyo"); fflush(stdout);
         return btrie_insertR(next, keys, i + delta, end, delta, data);
     }
 }
@@ -83,7 +79,6 @@ void *btrie_lookup(Trie *t, const char *keys, int size) {
 void *btrie_lookupR(Node *node, const char *keys, int i, int end, int delta) {
     char c = keys[i];
     Node *next = btrie_nextNode(node, c);
-    if (isS) printf("hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!hey!\n");
     return (!next) ? NULL :
         (i == end) ? next->data :
             btrie_lookupR(next, keys, i + delta, end, delta);
@@ -99,7 +94,7 @@ Node *btrie_nextNode(Node *node, char c) {
     return NULL;
 }
 
-Node *btrie_addNode(Node *node, char c, void *ptr) {
+Node *btrie_addNode(Node *node, char c, const void *ptr) {
     Node *newNode = btrie_makeNode(c, ptr), *cur = node->down, *prev = NULL;
     if (newNode) {
         while (cur) { 
