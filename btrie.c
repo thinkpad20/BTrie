@@ -19,7 +19,8 @@ void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, con
 void *btrie_lookupR(Node *node, const char *keys, int i, int end, int delta);
 Node *btrie_addNode(Node *node, char c, const void *ptr);
 Node *btrie_nextNode(Node *node, char c);
-void btrie_printR(Node *node, void (*print) (void *));
+size_t btrie_deleteR(Node *node);
+void btrie_mapR(Node *node, void (*func) (void *));
 
 Node *btrie_makeNode(char c, const void *data) {
     Node *node = (Node *)calloc(1, sizeof(Node));
@@ -39,15 +40,15 @@ void btrie_init(Trie *t) {
 
 void *btrie_insert(Trie *t, const char *keys, int size, const void *data) {
     int start = (t->dir == BTRIE_BACKTOFRONT) ? size - 1 : 0,
-        end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
-        delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
+    end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
+    delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
     void *res;
     if (!size) return NULL;
-
+    
     res = btrie_insertR(t->root, keys, start, end, delta, data);
     if (res)
         t->size++;
-
+    
     return res;
 }
 
@@ -66,12 +67,12 @@ void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, con
 
 void *btrie_lookup(Trie *t, const char *keys, int size) {
     int start = (t->dir == BTRIE_BACKTOFRONT) ? size - 1 : 0,
-        end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
-        delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
+    end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
+    delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
     if (!size) return NULL;
-
+    
     void *res = btrie_lookupR(t->root, keys, start, end, delta);
-
+    
     return res;
 }
 
@@ -79,14 +80,14 @@ void *btrie_lookupR(Node *node, const char *keys, int i, int end, int delta) {
     char c = keys[i];
     Node *next = btrie_nextNode(node, c);
     return (!next) ? NULL :
-        (i == end) ? next->data :
-            btrie_lookupR(next, keys, i + delta, end, delta);
+    (i == end) ? next->data :
+    btrie_lookupR(next, keys, i + delta, end, delta);
 }
 
 Node *btrie_nextNode(Node *node, char c) {
     Node *cur = node->down;
     while (cur) {
-        if (cur->c == c) 
+        if (cur->c == c)
             return cur;
         cur = cur->right;
     }
@@ -119,24 +120,59 @@ Node *btrie_addNode(Node *node, char c, const void *ptr) {
     return newNode;
 }
 
-void btrie_printR(Node *node, void (*print) (void *)) {
-    Node *cur = node->down;
-    if (node->data) 
-        print(node->data);
-    while (cur) {
-        btrie_printR(cur, print);
-        cur = cur->right;
-    }
-}
-
 void btrie_print(Trie *t) {
     if (!t->prnt) return;
-    btrie_printR(t->root, t->prnt);
+    btrie_map(t, t->prnt);
 }
 
 void btrie_printProfile(Trie *t) {
     printf("Trie has %lu objects in %d nodes. "
            "Size of one node is %lu bytes. "
            "Total memory usage is %lu bytes.",
-            t->size, num_nodes, sizeof(Node), num_nodes * sizeof(Node) + sizeof(Trie));
+           t->size, num_nodes, sizeof(Node), num_nodes * sizeof(Node) + sizeof(Trie));
+}
+
+size_t btrie_deleteR(Node *node) {
+    size_t num_deleted = 1;
+    Node *cur = node->down;
+    while (cur) {
+        num_deleted += btrie_deleteR(cur);
+        cur = cur->right;
+    }
+    free(node);
+    return num_deleted;
+}
+
+void btrie_delete(Trie *t) {
+    size_t num_deleted = btrie_deleteR(t->root);
+    t->size -= num_deleted;
+}
+
+void btrie_mapR(Node *node, void (*func) (void *)) {
+    Node *cur = node->down;
+    if (node->data)
+        func(node->data);
+    while (cur) {
+        btrie_mapR(cur, func);
+        cur = cur->right;
+    }
+}
+
+void btrie_map(struct BTrie *t, void (*func) (void *)) {
+    btrie_mapR(t->root, func);
+}
+
+void *btrie_applyR(Node *node, void *(*func) (void*)) {
+    Node *cur = node->down;
+    if (node->data)
+        func(node->data);
+    while (cur) {
+        btrie_applyR(cur, func);
+        cur = cur->right;
+    }
+    return NULL;
+}
+
+void *btrie_apply(Trie *t, void *(*func) (void *)) {
+    return btrie_applyR(t->root, func);
 }

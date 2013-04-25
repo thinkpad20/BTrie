@@ -28,10 +28,18 @@ struct BTrie {
     struct BTrieNode *root;
 };
 
+struct ArbitraryReturn {
+	size_t size;
+	void *content;
+};
+
 void btrie_init(struct BTrie *t);
 void *btrie_insert(struct BTrie *t, const char *keys, int size, const void *data);
 void *btrie_lookup(struct BTrie *t, const char *keys, int size);
 void btrie_print(struct BTrie *t);
 void btrie_printProfile(struct BTrie *t);
+void btrie_delete(struct BTrie *t);
+void btrie_map(struct BTrie *t, void (*func) (void *));
+void *btrie_apply(struct BTrie *t, void *(*func) (void *));
 
 #endif

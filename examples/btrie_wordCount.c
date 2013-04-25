@@ -13,6 +13,8 @@ struct word {
 	int num;
 };
 
+struct word **words;
+
 char *tolowerstr(char *str) {
 	int i, len = strlen(str);
 	for (i = 0; i < len; ++i) {
@@ -40,29 +42,65 @@ void word_print(void *w) {
 	printf("%s (%d instances)\n", word->text, word->num);
 }
 
+struct word_copyToArrayArgs{
+	struct word **array;
+	int index;
+	struct word *word;
+};
+
+void word_copyToArray(void *w) {
+	static int i = 0;
+	words[i++] = (struct word *)w;
+}
+
+int word_compare(const void *w1, const void *w2) {
+	struct word *word1 = (struct word *)w1,
+				*word2 = (struct word *)w2;
+	word_print(word1);
+	printf("comparing %s and %s: %d\n", word1->text, word2->text, strcmp(word1->text, word2->text));
+	return strcmp(word1->text, word2->text);
+}
+
+// void word_sortByPopularity() {
+// 	int i;
+// 	words = (struct word **)malloc(t.size * sizeof(struct word*));
+// 	btrie_map(&t, word_copyToArray);
+// 	for (i=0; i<t.size; ++i) {
+// 		word_print(words[i]);
+// 	}
+// 	printf("*******************************************************sorting...\n");
+// 	qsort(words, t.size, sizeof(struct word *), word_compare);
+// 	for (i=0; i<t.size; ++i) {
+// 		word_print(words[i]);
+// 	}
+// }
+
 int main(int argc, char **argv) {
-	const char *filename = (argc >= 3) ? argv[2] : "default_mod.txt";
+	const char *filename = (argc >= 3) ? argv[2] : "default.txt";
 	char c, buf[MAX_WORD];
 	
-	int i = 0, j = 0, numWords = (argc >= 2) ? atoi(argv[1]) : -1;
+	int i = 0, nWords = 0;
 	btrie_init(&t);
 	t.dir = 1;
 	FILE *fp = fopen(filename, "r");
 	if (!fp) { printf("Error opening file.\n"); return 0; }
-	while ((c = fgetc(fp)) != EOF  && j != numWords) {
+	while ((c = fgetc(fp)) != EOF) {
 		if ((c >= 'a' && c <= 'z' ) || (c >= 'A' && c <= 'Z'))
 			buf[i++] = c;
 		else {
 			buf[i] = '\0';
 			update_count(tolowerstr(buf), i);
 			i = 0;
-			j++;
+			nWords++;
 		}
 	}
 	fclose(fp);
 
 	t.prnt = word_print;
 	btrie_print(&t);
+	printf("Total %d words, %lu distinct.\n", nWords, t.size);
+	// word_sortByPopularity();
+	btrie_delete(&t);
 
 	return 0;
 }

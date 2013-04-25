@@ -34,6 +34,7 @@ void update_count(char *buf, int len) {
 One use that arises from this is hashing based on the pointer of an object. If many persistent heap-allocated objects are in use, especially when there may not be a guarantee of a unique key attribute, a data structure which can perform insertions and lookups based on pointers is very useful.
 
 ```c
+/* see btrie_personGenerator.c for more details */
 typedef struct BTrie BTrie;
 
 typedef struct person {
@@ -41,12 +42,11 @@ typedef struct person {
     int age;
 } Person;
 
+[...]
+
 for (i=0; i<num_entries/2; ++i) {
     Person *p = ppl[i];
-    if (!btrie_insert(&pt, (char *)&p, sizeof(p), p)) {
-        printf("error on insertion\n");
-        break;
-    }
+    btrie_insert(&pt, (char *)&p, sizeof(p), p))
 }
 for (i=0; i<(num_entries/2); ++i) {
     btrie_lookup(&pt, (char *)&ppl[i], sizeof(ppl[i]));
