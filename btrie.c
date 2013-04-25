@@ -14,7 +14,6 @@ typedef struct BTrieNode Node;
 typedef struct BTrie Trie;
 
 int num_nodes = 0;
-int isS = 0;
 
 void *btrie_insertR(Node *node, const char *keys, int i, int end, int delta, const void *data);
 void *btrie_lookupR(Node *node, const char *keys, int i, int end, int delta);
@@ -44,11 +43,11 @@ void *btrie_insert(Trie *t, const char *keys, int size, const void *data) {
         delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
     void *res;
     if (!size) return NULL;
-    if (!strcmp(keys, "s")) isS = 1;
+
     res = btrie_insertR(t->root, keys, start, end, delta, data);
     if (res)
         t->size++;
-    isS = 0;
+
     return res;
 }
 
@@ -70,9 +69,9 @@ void *btrie_lookup(Trie *t, const char *keys, int size) {
         end = (t->dir == BTRIE_BACKTOFRONT) ? 0 : size - 1,
         delta = (t->dir == BTRIE_BACKTOFRONT) ? -1 : 1;
     if (!size) return NULL;
-    if (!strcmp(keys, "s")) isS = 1;
+
     void *res = btrie_lookupR(t->root, keys, start, end, delta);
-    isS = 0;
+
     return res;
 }
 
@@ -95,22 +94,28 @@ Node *btrie_nextNode(Node *node, char c) {
 }
 
 Node *btrie_addNode(Node *node, char c, const void *ptr) {
-    Node *newNode = btrie_makeNode(c, ptr), *cur = node->down, *prev = NULL;
-    if (newNode) {
-        while (cur) { 
-            prev = cur; 
-            cur = cur->right;
+    Node *newNode, *cur = node->down, *prev = NULL;
+    while (cur) {
+        prev = cur;
+        if (cur->c == c) {
+            cur->data = (void *)ptr;
+            return cur;
         }
-        if (!prev) 
+        cur = cur->right;
+    }
+    
+    /* no node with current character exists */
+    newNode = btrie_makeNode(c, ptr);
+    if (newNode) {
+        if (!prev)
             node->down = newNode;
-        else 
+        else
             prev->right = newNode;
         num_nodes++;
     } else {
         fprintf(stderr, "Error in memory allocation, exiting.\n");
         exit(1);
     }
-
     return newNode;
 }
 

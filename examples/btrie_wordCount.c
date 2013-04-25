@@ -23,14 +23,11 @@ char *tolowerstr(char *str) {
 
 void update_count(char *buf, int len) {
 	if (!len) return;
-	printf("looking up '%s'... ", buf);
-	if (!strcmp(buf, "s")) printf("*******************************************s!\n");
+
 	struct word *word = (struct word *)btrie_lookup(&t, buf, len);
 	if (word) {
-		printf("found it, count is now %d.\n", word->num + 1);
 		word->num++;
 	} else {
-		printf("not found, creating\n");
 		word = (struct word *)calloc(1, sizeof(struct word));
 		strncpy(word->text, buf, MAX_WORD);
 		word->num = 1;
@@ -44,7 +41,7 @@ void word_print(void *w) {
 }
 
 int main(int argc, char **argv) {
-	const char *filename = (argc >= 3) ? argv[2] : "default.txt";
+	const char *filename = (argc >= 3) ? argv[2] : "default_mod.txt";
 	char c, buf[MAX_WORD];
 	
 	int i = 0, j = 0, numWords = (argc >= 2) ? atoi(argv[1]) : -1;
