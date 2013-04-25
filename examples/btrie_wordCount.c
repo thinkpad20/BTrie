@@ -16,7 +16,7 @@ struct word {
 struct word **words;
 
 char *tolowerstr(char *str) {
-	int i, len = strlen(str);
+	int i, len = (int)strlen(str);
 	for (i = 0; i < len; ++i) {
 		str[i] = tolower(str[i]);
 	}
@@ -25,7 +25,7 @@ char *tolowerstr(char *str) {
 
 void update_count(char *buf, int len) {
 	if (!len) return;
-
+    
 	struct word *word = (struct word *)btrie_lookup(&t, buf, len);
 	if (word) {
 		word->num++;
@@ -54,29 +54,24 @@ void word_copyToArray(void *w) {
 }
 
 int word_compare(const void *w1, const void *w2) {
-	struct word *word1 = (struct word *)w1,
-				*word2 = (struct word *)w2;
-	word_print(word1);
-	printf("comparing %s and %s: %d\n", word1->text, word2->text, strcmp(word1->text, word2->text));
-	return strcmp(word1->text, word2->text);
+	struct word **word1 = (struct word **)w1,
+    **word2 = (struct word **)w2;
+	return strcmp((*word1)->text, (*word2)->text);
 }
 
-// void word_sortByPopularity() {
-// 	int i;
-// 	words = (struct word **)malloc(t.size * sizeof(struct word*));
-// 	btrie_map(&t, word_copyToArray);
-// 	for (i=0; i<t.size; ++i) {
-// 		word_print(words[i]);
-// 	}
-// 	printf("*******************************************************sorting...\n");
-// 	qsort(words, t.size, sizeof(struct word *), word_compare);
-// 	for (i=0; i<t.size; ++i) {
-// 		word_print(words[i]);
-// 	}
-// }
+void word_printAlpha() {
+	int i;
+	words = (struct word **)malloc(t.size * sizeof(struct word *));
+	btrie_map(&t, word_copyToArray);
+
+	qsort(words, t.size, sizeof(struct word *), word_compare);
+	for (i=0; i<t.size; ++i) {
+		word_print(words[i]);
+	}
+}
 
 int main(int argc, char **argv) {
-	const char *filename = (argc >= 3) ? argv[2] : "default.txt";
+	const char *filename = (argc >= 2) ? argv[1] : "default.txt";
 	char c, buf[MAX_WORD];
 	
 	int i = 0, nWords = 0;
@@ -87,6 +82,8 @@ int main(int argc, char **argv) {
 	while ((c = fgetc(fp)) != EOF) {
 		if ((c >= 'a' && c <= 'z' ) || (c >= 'A' && c <= 'Z'))
 			buf[i++] = c;
+		else if (c == '\'')
+			continue;
 		else {
 			buf[i] = '\0';
 			update_count(tolowerstr(buf), i);
@@ -95,12 +92,12 @@ int main(int argc, char **argv) {
 		}
 	}
 	fclose(fp);
-
+    
 	t.prnt = word_print;
-	btrie_print(&t);
+	// btrie_print(&t);
+	word_printAlpha();
 	printf("Total %d words, %lu distinct.\n", nWords, t.size);
-	// word_sortByPopularity();
 	btrie_delete(&t);
-
+    
 	return 0;
 }
