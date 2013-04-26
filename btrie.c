@@ -97,21 +97,24 @@ Node *btrie_nextNode(Node *node, char c) {
 Node *btrie_addNode(Node *node, char c, const void *ptr) {
     Node *newNode, *cur = node->down, *prev = NULL;
     while (cur) {
-        prev = cur;
         if (cur->c == c) {
             cur->data = (void *)ptr;
             return cur;
         }
+        else if (cur->c > c)
+            break;
+        prev = cur;
         cur = cur->right;
     }
     
-    /* no node with current character exists */
     newNode = btrie_makeNode(c, ptr);
     if (newNode) {
         if (!prev)
             node->down = newNode;
-        else
+        else {
+            newNode->right = prev->right;
             prev->right = newNode;
+        }
         num_nodes++;
     } else {
         fprintf(stderr, "Error in memory allocation, exiting.\n");
