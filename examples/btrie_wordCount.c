@@ -94,8 +94,8 @@ int main(int argc, char **argv) {
 	fclose(fp);
     
 	t.prnt = word_print;
-	// btrie_print(&t);
-	word_printAlpha();
+	btrie_print(&t);
+	// word_printAlpha();
 	printf("Total %d words, %lu distinct.\n", nWords, t.size);
 	btrie_delete(&t);
     
